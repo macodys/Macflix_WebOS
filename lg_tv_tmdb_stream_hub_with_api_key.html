@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+  <title>TV Stream Hub - TMDB LG webOS HTML App</title>
+  <style>
+    :root {
+      --bg: #070912;
+      --panel: #111827;
+      --panel-2: #192235;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #5eead4;
+      --accent-2: #38bdf8;
+      --danger: #fb7185;
+      --focus: #facc15;
+      --radius: 24px;
+      --card-w: 210px;
+      --card-h: 315px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      cursor: default;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 75% 5%, rgba(56, 189, 248, .18), transparent 36%),
+        radial-gradient(circle at 15% 15%, rgba(94, 234, 212, .12), transparent 30%),
+        linear-gradient(135deg, #050712 0%, #0a1020 45%, #111827 100%);
+    }
+
+    .app {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: 1fr;
+    }
+
+    aside {
+      padding: 42px 24px;
+      background: rgba(5, 8, 18, .82);
+      border-right: 1px solid rgba(148, 163, 184, .15);
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .brand {
+      font-size: 30px;
+      line-height: 1.05;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    .hint {
+      font-size: 14px;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    button, input, .focusable {
+      outline: none;
+      border: none;
+      font: inherit;
+    }
+
+    .nav-btn,
+    .action-btn {
+      border-radius: 18px;
+      background: rgba(25, 34, 53, .8);
+      color: var(--text);
+      padding: 16px 18px;
+      text-align: left;
+      font-weight: 800;
+      font-size: 18px;
+      border: 3px solid transparent;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, rgba(94,234,212,.28), rgba(56,189,248,.18));
+      color: white;
+    }
+
+    .focusable.focused,
+    button.focused,
+    input.focused {
+      border-color: var(--focus) !important;
+      box-shadow: 0 0 0 6px rgba(250, 204, 21, .13);
+      transform: scale(1.04);
+      z-index: 5;
+    }
+
+    main {
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero {
+      min-height: 330px;
+      padding: 44px 56px 30px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      background-size: cover;
+      background-position: center;
+      border-bottom: 1px solid rgba(148, 163, 184, .14);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(7,9,18,.96) 0%, rgba(7,9,18,.72) 48%, rgba(7,9,18,.42) 100%),
+        linear-gradient(0deg, rgba(7,9,18,.95) 0%, transparent 60%);
+    }
+
+    .hero-content {
+      position: relative;
+      max-width: 900px;
+    }
+
+    .kicker {
+      color: var(--accent);
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      margin: 0 0 12px;
+      font-size: 54px;
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 18px;
+      margin-bottom: 14px;
+      font-weight: 700;
+    }
+
+    .overview {
+      color: #dbeafe;
+      font-size: 19px;
+      line-height: 1.35;
+      max-height: 82px;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 14px;
+      padding: 24px 56px 6px;
+      align-items: center;
+    }
+
+    .search-box {
+      width: 460px;
+      padding: 17px 20px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, .9);
+      color: white;
+      font-size: 20px;
+      border: 3px solid rgba(148, 163, 184, .18);
+    }
+
+    .section-title {
+      padding: 16px 56px 8px;
+      color: white;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .rows {
+      flex: 1;
+      overflow: hidden;
+      padding: 0 0 40px;
+    }
+
+    .row {
+      padding: 8px 56px 20px;
+    }
+
+    .row-title {
+      font-size: 20px;
+      font-weight: 900;
+      margin: 8px 0 14px;
+      color: #e2e8f0;
+    }
+
+    .rail {
+      display: flex;
+      gap: 18px;
+      overflow: visible;
+      height: 392px;
+      align-items: flex-start;
+      transition: transform .15s ease;
+    }
+
+    .card {
+      width: var(--card-w);
+      min-width: var(--card-w);
+      height: 370px;
+      border-radius: 22px;
+      background: var(--panel);
+      overflow: hidden;
+      border: 3px solid rgba(148, 163, 184, .13);
+      box-shadow: 0 20px 36px rgba(0,0,0,.25);
+      transition: transform .12s ease, border-color .12s ease;
+    }
+
+    .poster {
+      width: 100%;
+      height: var(--card-h);
+      background: #0f172a;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-title {
+      padding: 10px 12px;
+      font-weight: 900;
+      font-size: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .empty {
+      padding: 30px 56px;
+      color: var(--muted);
+      font-size: 22px;
+    }
+
+    .details {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 15, .96);
+      z-index: 50;
+      display: none;
+      grid-template-columns: 360px 1fr;
+      gap: 38px;
+      padding: 54px;
+    }
+
+    .details.open {
+      display: grid;
+    }
+
+    .detail-poster {
+      width: 330px;
+      height: 500px;
+      object-fit: cover;
+      border-radius: 28px;
+      background: #111827;
+      box-shadow: 0 30px 60px rgba(0,0,0,.4);
+    }
+
+    .details h2 {
+      font-size: 58px;
+      margin: 0 0 12px;
+      line-height: 1;
+    }
+
+    .details p {
+      font-size: 22px;
+      line-height: 1.45;
+      color: #dbeafe;
+      max-width: 1050px;
+    }
+
+    .provider-list {
+      display: flex;
+      gap: 12px;
+      margin: 18px 0 24px;
+      flex-wrap: wrap;
+    }
+
+    .provider {
+      background: rgba(30, 41, 59, .9);
+      border-radius: 14px;
+      padding: 10px 14px;
+      color: #e2e8f0;
+      font-weight: 800;
+    }
+
+    .actions {
+      display: flex;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .action-btn {
+      text-align: center;
+      min-width: 190px;
+      background: linear-gradient(135deg, rgba(94,234,212,.26), rgba(56,189,248,.18));
+    }
+
+    .action-btn.danger {
+      background: rgba(251, 113, 133, .18);
+    }
+
+    .player {
+      position: fixed;
+      inset: 0;
+      display: none;
+      background: black;
+      z-index: 80;
+    }
+
+    .player.open {
+      display: block;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 40px;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, .95);
+      border: 1px solid rgba(148, 163, 184, .2);
+      color: white;
+      border-radius: 18px;
+      padding: 14px 22px;
+      font-size: 18px;
+      font-weight: 800;
+      display: none;
+      z-index: 100;
+    }
+
+    .toast.show { display: block; }
+
+    @media (max-width: 1000px) {
+      .app { grid-template-columns: 210px 1fr; }
+      aside { padding: 28px 18px; }
+      .hero { padding: 32px 32px 24px; }
+      .hero h1 { font-size: 42px; }
+      .toolbar, .section-title, .row { padding-left: 32px; padding-right: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">TV<span>Stream</span><br/>Hub</div>
+      <div class="hint">
+        LG TV remote: arrows to move, OK/Enter to open, Back/Esc to close.
+        This app uses TMDB metadata, trailers, and legal watch-provider info.
+      </div>
+
+      <div class="nav" id="nav">
+        <button class="nav-btn focusable active" data-view="trending">Trending</button>
+        <button class="nav-btn focusable" data-view="movies">Movies</button>
+        <button class="nav-btn focusable" data-view="tv">TV Shows</button>
+        <button class="nav-btn focusable" data-view="search">Search</button>
+      </div>
+
+      <div class="hint">
+        Add your TMDB API key inside the script:
+        <br/><strong>TMDB_API_KEY</strong>
+      </div>
+    </aside>
+
+    <main>
+      <section class="hero" id="hero">
+        <div class="hero-content">
+          <div class="kicker" id="heroKicker">TMDB</div>
+          <h1 id="heroTitle">Loading...</h1>
+          <div class="meta" id="heroMeta"></div>
+          <div class="overview" id="heroOverview"></div>
+        </div>
+      </section>
+
+      <div class="toolbar">
+        <input id="searchInput" class="search-box focusable" placeholder="Search movies and TV..." />
+        <button id="searchBtn" class="action-btn focusable">Search</button>
+      </div>
+
+      <div class="section-title" id="sectionTitle">Trending Today</div>
+      <section class="rows" id="rows"></section>
+    </main>
+  </div>
+
+  <section class="details" id="details">
+    <img class="detail-poster" id="detailPoster" alt="" />
+    <div>
+      <div class="kicker" id="detailKicker">Details</div>
+      <h2 id="detailTitle"></h2>
+      <div class="meta" id="detailMeta"></div>
+      <p id="detailOverview"></p>
+      <h3>Available on</h3>
+      <div class="provider-list" id="providers"></div>
+      <div class="actions">
+        <button id="trailerBtn" class="action-btn focusable">Watch Trailer</button>
+        <button id="closeBtn" class="action-btn danger focusable">Close</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="player" id="player">
+    <iframe id="playerFrame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+  </section>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /*
+      LG webOS / TV browser notes:
+      - Keep JS plain ES5/ES6-ish. Avoid heavy frameworks.
+      - Use directional keyboard navigation instead of relying only on mouse/touch.
+      - For production webOS packaged apps, add appinfo.json and test with the LG webOS CLI.
+    */
+
+    var TMDB_API_KEY = "6b4357c41d9c606e4d7ebe2f4a8850ea";
+    var TMDB_BASE = "https://api.themoviedb.org/3";
+    var IMG = "https://image.tmdb.org/t/p/";
+    var REGION = "CY"; // Change to US, GB, GR, etc.
+
+    var state = {
+      view: "trending",
+      currentItems: [],
+      focusedIndex: 0,
+      focusables: [],
+      selected: null,
+      trailerKey: null
+    };
+
+    var $ = function(id) { return document.getElementById(id); };
+
+    function api(path) {
+      var sep = path.indexOf("?") === -1 ? "?" : "&";
+      return fetch(TMDB_BASE + path + sep + "api_key=" + encodeURIComponent(TMDB_API_KEY))
+        .then(function(r) {
+          if (!r.ok) throw new Error("TMDB request failed: " + r.status);
+          return r.json();
+        });
+    }
+
+    function poster(item) {
+      return item.poster_path
+        ? IMG + "w342" + item.poster_path
+        : "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="342" height="513"><rect width="100%" height="100%" fill="#111827"/><text x="50%" y="50%" fill="#94a3b8" font-size="28" text-anchor="middle">No Poster</text></svg>'
+        );
+    }
+
+    function backdrop(item) {
+      return item.backdrop_path ? "url('" + IMG + "w1280" + item.backdrop_path + "')" : "none";
+    }
+
+    function titleOf(item) {
+      return item.title || item.name || "Untitled";
+    }
+
+    function dateOf(item) {
+      return item.release_date || item.first_air_date || "";
+    }
+
+    function mediaTypeOf(item) {
+      return item.media_type || (item.first_air_date ? "tv" : "movie");
+    }
+
+    function showToast(msg) {
+      var toast = $("toast");
+      toast.textContent = msg;
+      toast.className = "toast show";
+      setTimeout(function() { toast.className = "toast"; }, 2500);
+    }
+
+    function checkKey() {
+      if (!TMDB_API_KEY || TMDB_API_KEY === "PASTE_YOUR_TMDB_API_KEY_HERE") {
+        showToast("Add your TMDB API key in the HTML first.");
+        return false;
+      }
+      return true;
+    }
+
+    function setHero(item, label) {
+      $("hero").style.backgroundImage = backdrop(item);
+      $("heroKicker").textContent = label || mediaTypeOf(item).toUpperCase();
+      $("heroTitle").textContent = titleOf(item);
+      $("heroMeta").textContent = [
+        dateOf(item) ? dateOf(item).slice(0, 4) : "",
+        item.vote_average ? "★ " + Number(item.vote_average).toFixed(1) : "",
+        mediaTypeOf(item).toUpperCase()
+      ].filter(Boolean).join("  •  ");
+      $("heroOverview").textContent = item.overview || "";
+    }
+
+    function renderRail(title, items) {
+      var rows = $("rows");
+      var row = document.createElement("div");
+      row.className = "row";
+
+      var h = document.createElement("div");
+      h.className = "row-title";
+      h.textContent = title;
+
+      var rail = document.createElement("div");
+      rail.className = "rail";
+
+      items.forEach(function(item) {
+        var card = document.createElement("div");
+        card.className = "card focusable";
+        card.tabIndex = -1;
+        card.dataset.id = item.id;
+        card.dataset.mediaType = mediaTypeOf(item);
+
+        var img = document.createElement("img");
+        img.className = "poster";
+        img.src = poster(item);
+        img.alt = titleOf(item);
+
+        var ct = document.createElement("div");
+        ct.className = "card-title";
+        ct.textContent = titleOf(item);
+
+        card.appendChild(img);
+        card.appendChild(ct);
+        card.addEventListener("click", function() {
+          openDetails(item);
+        });
+
+        rail.appendChild(card);
+      });
+
+      row.appendChild(h);
+      row.appendChild(rail);
+      rows.appendChild(row);
+    }
+
+    function renderContent(title, rowsData) {
+      $("sectionTitle").textContent = title;
+      $("rows").innerHTML = "";
+      state.currentItems = [];
+
+      rowsData.forEach(function(row) {
+        state.currentItems = state.currentItems.concat(row.items);
+        renderRail(row.title, row.items);
+      });
+
+      if (state.currentItems.length) setHero(state.currentItems[0], title);
+      refreshFocusables();
+      focusFirstCard();
+    }
+
+    function loadView(view) {
+      if (!checkKey()) return;
+      state.view = view;
+      document.querySelectorAll(".nav-btn").forEach(function(btn) {
+        btn.classList.toggle("active", btn.dataset.view === view);
+      });
+
+      if (view === "trending") {
+        Promise.all([
+          api("/trending/all/day"),
+          api("/movie/popular"),
+          api("/tv/popular")
+        ]).then(function(res) {
+          renderContent("Trending Today", [
+            { title: "Trending", items: res[0].results.slice(0, 14) },
+            { title: "Popular Movies", items: res[1].results.slice(0, 14).map(function(x){ x.media_type = "movie"; return x; }) },
+            { title: "Popular TV Shows", items: res[2].results.slice(0, 14).map(function(x){ x.media_type = "tv"; return x; }) }
+          ]);
+        }).catch(function(e) { showToast(e.message); });
+      }
+
+      if (view === "movies") {
+        Promise.all([
+          api("/movie/popular"),
+          api("/movie/top_rated"),
+          api("/movie/now_playing")
+        ]).then(function(res) {
+          renderContent("Movies", [
+            { title: "Popular Movies", items: res[0].results.map(function(x){ x.media_type = "movie"; return x; }) },
+            { title: "Top Rated", items: res[1].results.map(function(x){ x.media_type = "movie"; return x; }) },
+            { title: "Now Playing", items: res[2].results.map(function(x){ x.media_type = "movie"; return x; }) }
+          ]);
+        }).catch(function(e) { showToast(e.message); });
+      }
+
+      if (view === "tv") {
+        Promise.all([
+          api("/tv/popular"),
+          api("/tv/top_rated"),
+          api("/tv/on_the_air")
+        ]).then(function(res) {
+          renderContent("TV Shows", [
+            { title: "Popular TV", items: res[0].results.map(function(x){ x.media_type = "tv"; return x; }) },
+            { title: "Top Rated TV", items: res[1].results.map(function(x){ x.media_type = "tv"; return x; }) },
+            { title: "On The Air", items: res[2].results.map(function(x){ x.media_type = "tv"; return x; }) }
+          ]);
+        }).catch(function(e) { showToast(e.message); });
+      }
+
+      if (view === "search") {
+        $("searchInput").focus();
+        refreshFocusables();
+        setFocused($("searchInput"));
+        $("sectionTitle").textContent = "Search";
+        $("rows").innerHTML = '<div class="empty">Type a movie or TV show name, then press Search.</div>';
+      }
+    }
+
+    function runSearch() {
+      if (!checkKey()) return;
+      var q = $("searchInput").value.trim();
+      if (!q) {
+        showToast("Type a search term first.");
+        return;
+      }
+
+      api("/search/multi?query=" + encodeURIComponent(q))
+        .then(function(res) {
+          var items = res.results
+            .filter(function(x) { return (x.media_type === "movie" || x.media_type === "tv") && x.poster_path; })
+            .slice(0, 30);
+          renderContent("Search: " + q, [{ title: "Results", items: items }]);
+        })
+        .catch(function(e) { showToast(e.message); });
+    }
+
+    function openDetails(item) {
+      state.selected = item;
+      state.trailerKey = null;
+
+      var type = mediaTypeOf(item);
+      var id = item.id;
+
+      Promise.all([
+        api("/" + type + "/" + id),
+        api("/" + type + "/" + id + "/videos"),
+        api("/" + type + "/" + id + "/watch/providers")
+      ]).then(function(res) {
+        var details = res[0];
+        var videos = res[1].results || [];
+        var providers = res[2].results || {};
+        var regional = providers[REGION] || providers.US || providers.GB || null;
+
+        var ytTrailer = videos.find(function(v) {
+          return v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser");
+        });
+
+        state.trailerKey = ytTrailer ? ytTrailer.key : null;
+
+        $("detailPoster").src = poster(item);
+        $("detailKicker").textContent = type === "tv" ? "TV SERIES" : "MOVIE";
+        $("detailTitle").textContent = titleOf(details);
+        $("detailMeta").textContent = [
+          dateOf(details) ? dateOf(details).slice(0, 4) : "",
+          details.vote_average ? "★ " + Number(details.vote_average).toFixed(1) : "",
+          details.runtime ? details.runtime + " min" : "",
+          details.number_of_seasons ? details.number_of_seasons + " seasons" : ""
+        ].filter(Boolean).join("  •  ");
+        $("detailOverview").textContent = details.overview || "No overview available.";
+
+        var providerBox = $("providers");
+        providerBox.innerHTML = "";
+
+        var flat = regional && regional.flatrate ? regional.flatrate : [];
+        var rent = regional && regional.rent ? regional.rent : [];
+        var buy = regional && regional.buy ? regional.buy : [];
+        var all = flat.concat(rent).concat(buy);
+
+        if (all.length) {
+          var names = {};
+          all.slice(0, 12).forEach(function(p) {
+            if (names[p.provider_name]) return;
+            names[p.provider_name] = true;
+            var el = document.createElement("div");
+            el.className = "provider";
+            el.textContent = p.provider_name;
+            providerBox.appendChild(el);
+          });
+        } else {
+          providerBox.innerHTML = '<div class="provider">No provider data for region ' + REGION + '</div>';
+        }
+
+        $("trailerBtn").textContent = state.trailerKey ? "Watch Trailer" : "No Trailer";
+        $("details").classList.add("open");
+        refreshFocusables();
+        setFocused($("trailerBtn"));
+      }).catch(function(e) { showToast(e.message); });
+    }
+
+    function closeDetails() {
+      $("details").classList.remove("open");
+      refreshFocusables();
+      focusFirstCard();
+    }
+
+    function openTrailer() {
+      if (!state.trailerKey) {
+        showToast("No trailer found.");
+        return;
+      }
+      $("playerFrame").src = "https://www.youtube.com/embed/" + state.trailerKey + "?autoplay=1&controls=1";
+      $("player").classList.add("open");
+    }
+
+    function closePlayer() {
+      $("playerFrame").src = "";
+      $("player").classList.remove("open");
+      refreshFocusables();
+      setFocused($("trailerBtn"));
+    }
+
+    function refreshFocusables() {
+      var scope = document;
+      if ($("player").classList.contains("open")) {
+        state.focusables = [];
+        return;
+      }
+      if ($("details").classList.contains("open")) {
+        scope = $("details");
+      }
+      state.focusables = Array.prototype.slice.call(scope.querySelectorAll(".focusable"))
+        .filter(function(el) {
+          return el.offsetParent !== null || el === $("searchInput");
+        });
+    }
+
+    function setFocused(el) {
+      document.querySelectorAll(".focused").forEach(function(x) { x.classList.remove("focused"); });
+      if (!el) return;
+      el.classList.add("focused");
+      state.focusedIndex = state.focusables.indexOf(el);
+      if (el.tagName === "INPUT") el.focus();
+      else el.blur();
+
+      if (el.classList.contains("card")) {
+        el.scrollIntoView({ block: "nearest", inline: "center" });
+        var id = Number(el.dataset.id);
+        var mt = el.dataset.mediaType;
+        var found = state.currentItems.find(function(x) {
+          return x.id === id && mediaTypeOf(x) === mt;
+        });
+        if (found) setHero(found);
+      }
+    }
+
+    function focusFirstCard() {
+      refreshFocusables();
+      var card = state.focusables.find(function(el) { return el.classList.contains("card"); });
+      setFocused(card || state.focusables[0]);
+    }
+
+    function moveFocus(dir) {
+      refreshFocusables();
+      if (!state.focusables.length) return;
+
+      var current = document.querySelector(".focused") || state.focusables[0];
+      var rect = current.getBoundingClientRect();
+      var candidates = state.focusables.filter(function(el) { return el !== current; });
+
+      var best = null;
+      var bestScore = Infinity;
+
+      candidates.forEach(function(el) {
+        var r = el.getBoundingClientRect();
+        var dx = (r.left + r.width / 2) - (rect.left + rect.width / 2);
+        var dy = (r.top + r.height / 2) - (rect.top + rect.height / 2);
+
+        if (dir === "left" && dx >= -8) return;
+        if (dir === "right" && dx <= 8) return;
+        if (dir === "up" && dy >= -8) return;
+        if (dir === "down" && dy <= 8) return;
+
+        var primary = (dir === "left" || dir === "right") ? Math.abs(dx) : Math.abs(dy);
+        var secondary = (dir === "left" || dir === "right") ? Math.abs(dy) : Math.abs(dx);
+        var score = primary + secondary * 2.4;
+
+        if (score < bestScore) {
+          bestScore = score;
+          best = el;
+        }
+      });
+
+      if (best) setFocused(best);
+    }
+
+    function activateFocused() {
+      var el = document.querySelector(".focused");
+      if (!el) return;
+      if (el === $("searchInput")) {
+        runSearch();
+        return;
+      }
+      el.click();
+    }
+
+    document.addEventListener("keydown", function(e) {
+      var code = e.keyCode || e.which;
+
+      if ($("player").classList.contains("open")) {
+        if (code === 461 || code === 27 || code === 8 || code === 13) {
+          e.preventDefault();
+          closePlayer();
+        }
+        return;
+      }
+
+      switch (code) {
+        case 37: e.preventDefault(); moveFocus("left"); break;   // Left
+        case 38: e.preventDefault(); moveFocus("up"); break;     // Up
+        case 39: e.preventDefault(); moveFocus("right"); break;  // Right
+        case 40: e.preventDefault(); moveFocus("down"); break;   // Down
+        case 13: e.preventDefault(); activateFocused(); break;    // OK / Enter
+        case 461: // LG Back
+        case 27:  // Esc
+        case 8:   // Backspace
+          e.preventDefault();
+          if ($("details").classList.contains("open")) closeDetails();
+          break;
+      }
+    }, false);
+
+    $("searchBtn").addEventListener("click", runSearch);
+    $("searchInput").addEventListener("keydown", function(e) {
+      if ((e.keyCode || e.which) === 13) runSearch();
+    });
+    $("closeBtn").addEventListener("click", closeDetails);
+    $("trailerBtn").addEventListener("click", openTrailer);
+
+    document.querySelectorAll(".nav-btn").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        loadView(btn.dataset.view);
+      });
+    });
+
+    window.addEventListener("load", function() {
+      refreshFocusables();
+      setFocused(document.querySelector(".nav-btn.active"));
+      loadView("trending");
+    });
+  </script>
+</body>
+</html>
